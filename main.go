@@ -20,6 +20,7 @@ var (
 	Tree map[byte] *node = make(map[byte] *node)
 	domainRegex = regexp.MustCompile(DomainRegex)
 	MaxDepth int
+	Parallelism int
 	Home string
 	HomeDomain string
 	HomePrefix string
@@ -97,6 +98,7 @@ func hasDomain(domain string) (has bool) {
 func init() {
 	flag.StringVar(&Home, "h", "", "visit it")
 	flag.IntVar(&MaxDepth, "d", 1, "max depth")
+	flag.IntVar(&Parallelism, "p", 2, "Parallelism")
 	flag.Parse()
 }
 
@@ -150,7 +152,7 @@ func main() {
 		//colly.AllowedDomains("hackerspaces.org", "wiki.hackerspaces.org"),
 		colly.DisallowedDomains("www.beian.gov.cn", "beian.miit.gov.cn"),
 	)
-	c.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 2})
+	c.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: Parallelism})
 	// On every a element which has href attribute call callback
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
 		link := e.Attr("href")
@@ -158,7 +160,7 @@ func main() {
 		// Only those links are visited which are in AllowedDomains
 		absUrl := e.Request.AbsoluteURL(link)
 		// Print link
-		fmt.Printf("Link found: %q -> %s\n", e.Text, absUrl)
+		//fmt.Printf("Link found: %q -> %s\n", e.Text, absUrl)
 		if absUrl == "" {
 			return
 		}
