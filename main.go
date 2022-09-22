@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
+	"io"
 	"log"
+	"os"
 	"reflect"
 	"regexp"
 	"strings"
@@ -27,6 +30,7 @@ var (
 	mutex sync.Mutex
 	domaMu sync.Mutex
 	visted map[string] bool = map[string]bool{}
+	domainFile string
 )
 func searchDomain(domain string) string  {
 	//doubleSlah := strings.Index(domain, "//")
@@ -99,6 +103,7 @@ func init() {
 	flag.StringVar(&Home, "h", "", "visit it")
 	flag.IntVar(&MaxDepth, "d", 1, "max depth")
 	flag.IntVar(&Parallelism, "p", 2, "Parallelism")
+	flag.StringVar(&domainFile, "dl", "", "domain file")
 	flag.Parse()
 }
 
@@ -138,7 +143,34 @@ func prefix(url string) string {
 	return url[:to]
 
 }
+func OpenFile(filename string) (*os.File, error) {
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		return os.Create(filename)
+	}
+	return os.OpenFile(filename, os.O_APPEND|os.O_RDWR, os.ModePerm)
+}
+
 func main() {
+	if domainFile != "" {
+		domainFilePtr, err := OpenFile(domainFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		rd := bufio.NewReader(domainFilePtr)
+
+		for {
+			line, err := rd.ReadString('\n')
+			if err != nil || err == io.EOF {
+				break
+			}
+			line = strings.Trim(line, "\n")
+			line = strings.Trim(line, "\r")
+			line = strings.Trim(line, " ")
+			hasDomain(line)
+		}
+		domainFilePtr.Close()
+	}
+
 	HomePrefix = prefix(Home)
 	HomeDomain = searchDomain(HomePrefix)
 	if HomeDomain == "" {
@@ -156,9 +188,10 @@ func main() {
 	// On every a element which has href attribute call callback
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
 		link := e.Attr("href")
-		// Visit link found on page
-		// Only those links are visited which are in AllowedDomains
 		absUrl := e.Request.AbsoluteURL(link)
+		if e.Request.Depth > MaxDepth {
+			return
+		}
 		// Print link
 		//fmt.Printf("Link found: %q -> %s\n", e.Text, absUrl)
 		if absUrl == "" {
