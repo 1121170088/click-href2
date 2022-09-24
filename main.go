@@ -230,9 +230,11 @@ func main() {
 			if !has {
 				fmt.Println("Visiting", absUrl, " domain: ", domain)
 				if domainFilePtr != nil {
+					fileMu.Lock()
 					if _, err := io.WriteString(domainFilePtr, domain +"\n"); err != nil {
 						log.Fatal(err.Error())
 					}
+					fileMu.Unlock()
 				}
 				if notifyServer != "" {
 					resp, err := http.Get(notifyServer + domain)
