@@ -6,14 +6,15 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net/http"
 	"os"
 	"reflect"
 	"regexp"
 	"strings"
 	"sync"
 
-	"github.com/gocolly/colly/v2"
 	"github.com/1121170088/find-domain/search"
+	"github.com/gocolly/colly/v2"
 )
 type node struct{
 	end bool
@@ -28,9 +29,11 @@ var (
 	HomePrefix string
 	mutex sync.Mutex
 	domaMu sync.Mutex
+	fileMu sync.Mutex
 	visted map[string] bool = map[string]bool{}
 	domainFile string
 	domainSuffixFile string
+	notifyServer string
 )
 func searchDomain(domain string) string  {
 	//doubleSlah := strings.Index(domain, "//")
@@ -102,6 +105,7 @@ func init() {
 	flag.IntVar(&Parallelism, "p", 2, "Parallelism")
 	flag.StringVar(&domainFile, "dl", "", "domain file")
 	flag.StringVar(&domainSuffixFile, "dsf", "", "domain suffix file")
+	flag.StringVar(&notifyServer, "ns", "", "notify server")
 	flag.Parse()
 }
 
@@ -150,11 +154,14 @@ func OpenFile(filename string) (*os.File, error) {
 
 func main() {
 	search.Init(domainSuffixFile)
+	var domainFilePtr *os.File
+	var err error
 	if domainFile != "" {
-		domainFilePtr, err := OpenFile(domainFile)
+		domainFilePtr, err = OpenFile(domainFile)
 		if err != nil {
 			log.Fatal(err)
 		}
+		defer domainFilePtr.Close()
 		rd := bufio.NewReader(domainFilePtr)
 
 		for {
@@ -167,7 +174,7 @@ func main() {
 			line = strings.Trim(line, " ")
 			hasDomain(line)
 		}
-		domainFilePtr.Close()
+
 	}
 
 	HomePrefix = prefix(Home)
@@ -222,6 +229,18 @@ func main() {
 			domaMu.Unlock()
 			if !has {
 				fmt.Println("Visiting", absUrl, " domain: ", domain)
+				if domainFilePtr != nil {
+					if _, err := io.WriteString(domainFilePtr, domain +"\n"); err != nil {
+						log.Fatal(err.Error())
+					}
+				}
+				if notifyServer != "" {
+					resp, err := http.Get(notifyServer + domain)
+					if err != nil {
+						log.Fatal(err)
+					}
+					resp.Body.Close()
+				}
 				c.Visit(absUrl)
 			}
 		}
