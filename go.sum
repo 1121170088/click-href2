@@ -1,6 +1,6 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
-github.com/1121170088/find-domain v1.0.4 h1:4KVjuuMaEc5BQxgBjj6fFLp95zzKt3f3lV6/wjC/U4A=
-github.com/1121170088/find-domain v1.0.4/go.mod h1:50FcFQTz/1qd43rip9wfH1q38la17yH+KhJPzFj+pBk=
+github.com/1121170088/find-domain v1.0.5 h1:MUQ5HSdDHbA7LrWknfBe7mLOHz4Vnk2lLQO4AaHpj60=
+github.com/1121170088/find-domain v1.0.5/go.mod h1:50FcFQTz/1qd43rip9wfH1q38la17yH+KhJPzFj+pBk=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/PuerkitoBio/goquery v1.5.1 h1:PSPBGne8NIUWw+/7vFBV+kG2J/5MOjbzc7154OaKCSE=
 github.com/PuerkitoBio/goquery v1.5.1/go.mod h1:GsLWisAFVj4WgDibEWF4pvYnkVQBpKBKeU+7zCJoLcc=
